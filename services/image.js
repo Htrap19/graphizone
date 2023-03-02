@@ -64,8 +64,8 @@ module.exports.upload = async function(req, res, next) {
     res.json(uploadedFiles);
 }
 
-module.exports.resizeImage = async function(req, res, next) {
-    const {width, height} = req.params;
+module.exports.getImage = async function(req, res, next) {
+    let {width, height} = req.query;
     const imageFromDB = await GridFile.findById(req.params.id);
     if (!imageFromDB)
         return res.status(404).json("Image not found!");
@@ -76,6 +76,9 @@ module.exports.resizeImage = async function(req, res, next) {
         await imageFromDB.download(stream);
 
         const image = await Jimp.read(stream.getBuffer());
+        width = width ?? image.getWidth();
+        height = height ?? image.getHeight();
+
         await image
             .resize(parseInt(width), parseInt(height))
             .writeAsync(filePath);
